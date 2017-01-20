@@ -1,0 +1,409 @@
+---
+
+Description: Foundation Setup
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  CIDRBase:
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})"
+    ConstraintDescription: 'must be a just 2 segments of CIDR range: x.x'
+    Default: 10.1
+    Description: First two segments of the VPC CIDR
+    Type: String
+  Environment:
+    Description: Environment name
+    Type: String
+  Region:
+    Description: Region
+    Type: String
+
+Mappings:
+  SubnetConfig:
+    PublicA:
+      CIDR: 1.0/24
+      name: Public A
+    PublicB:
+      CIDR: 2.0/24
+      name: Public B
+    PublicC:
+      CIDR: 3.0/24
+      name: Public C
+    PrivateA:
+      CIDR: 8.0/24
+      name: Private A
+    PrivateB:
+      CIDR: 64.0/24
+      name: Private B
+    PrivateC:
+      CIDR: 128.0/24
+      name: Private C
+  Zones:
+    eu-west-1:
+      A: eu-west-1a
+      B: eu-west-1b
+      C: eu-west-1c
+    eu-central-1:
+      A: eu-central-1a
+      B: eu-central-1b
+      C: eu-central-1c
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock:
+        Fn::Join:
+          - "."
+          - - Ref: CIDRBase
+            - 0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Description
+          Value: vpc
+        - Key: Name
+          Value:
+            Ref: Environment
+
+  SubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::FindInMap:
+          - Zones
+          - Ref: Region
+          - A
+      CidrBlock:
+        Fn::Join:
+          - "."
+          - - Ref: CIDRBase
+            - Fn::FindInMap:
+              - SubnetConfig
+              - PublicA
+              - CIDR
+      Tags:
+        - Key: Description
+          Value:
+            Fn::Join:
+            - " "
+            - - Public subnet (A) for
+              - Ref: Environment
+              - environment
+              - in zone
+              - Fn::FindInMap:
+                - Zones
+                - Ref: Region
+                - A
+        - Key: Name
+          Value:
+            Fn::Join:
+            - "-"
+            - - Ref: Environment
+              - public-a
+        - Key: Role
+          Value: vpc
+
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::FindInMap:
+        - Zones
+        - Ref: Region
+        - A
+      CidrBlock:
+        Fn::Join:
+        - "."
+        - - Ref: CIDRBase
+          - Fn::FindInMap:
+            - SubnetConfig
+            - PrivateA
+            - CIDR
+      Tags:
+      - Key: Description
+        Value:
+          Fn::Join:
+          - " "
+          - - Private subnet (A) for
+            - Ref: Environment
+            - environment
+            - in zone
+            - Fn::FindInMap:
+              - Zones
+              - Ref: Region
+              - A
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: Environment
+            - private-a
+      - Key: Role
+        Value: vpc
+
+  SubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::FindInMap:
+        - Zones
+        - Ref: Region
+        - B
+      CidrBlock:
+        Fn::Join:
+        - "."
+        - - Ref: CIDRBase
+          - Fn::FindInMap:
+            - SubnetConfig
+            - PublicB
+            - CIDR
+      Tags:
+      - Key: Description
+        Value:
+          Fn::Join:
+          - " "
+          - - Public subnet (B) for
+            - Ref: Environment
+            - environment
+            - in zone
+            - Fn::FindInMap:
+              - Zones
+              - Ref: Region
+              - B
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: Environment
+            - public-b
+      - Key: Role
+        Value: vpc
+
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::FindInMap:
+        - Zones
+        - Ref: Region
+        - B
+      CidrBlock:
+        Fn::Join:
+        - "."
+        - - Ref: CIDRBase
+          - Fn::FindInMap:
+            - SubnetConfig
+            - PrivateB
+            - CIDR
+      Tags:
+      - Key: Description
+        Value:
+          Fn::Join:
+          - " "
+          - - Private subnet (B) for
+            - Ref: Environment
+            - environment
+            - in zone
+            - Fn::FindInMap:
+              - Zones
+              - Ref: Region
+              - B
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: Environment
+            - private-b
+      - Key: Role
+        Value: vpc
+
+  SubnetPublicC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::FindInMap:
+        - Zones
+        - Ref: Region
+        - C
+      CidrBlock:
+        Fn::Join:
+        - "."
+        - - Ref: CIDRBase
+          - Fn::FindInMap:
+            - SubnetConfig
+            - PublicC
+            - CIDR
+      Tags:
+      - Key: Description
+        Value:
+          Fn::Join:
+          - " "
+          - - Public subnet (C) for
+            - Ref: Environment
+            - environment
+            - in zone
+            - Fn::FindInMap:
+              - Zones
+              - Ref: Region
+              - C
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: Environment
+            - public-c
+      - Key: Role
+        Value: vpc
+
+  SubnetPrivateC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      AvailabilityZone:
+        Fn::FindInMap:
+        - Zones
+        - Ref: Region
+        - C
+      CidrBlock:
+        Fn::Join:
+        - "."
+        - - Ref: CIDRBase
+          - Fn::FindInMap:
+            - SubnetConfig
+            - PrivateC
+            - CIDR
+      Tags:
+      - Key: Description
+        Value:
+          Fn::Join:
+          - " "
+          - - Private subnet (C) for
+            - Ref: Environment
+            - environment
+            - in zone
+            - Fn::FindInMap:
+              - Zones
+              - Ref: Region
+              - C
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: Environment
+            - private-c
+      - Key: Role
+        Value: vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Description
+        Value:
+          Ref: Environment
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: Environment
+      - Key: Role
+        Value: vpc
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+      - Key: Description
+        Value:
+          Fn::Join:
+          - " "
+          - - Public subnets (A, B and C) route table for
+            - Ref: Environment
+            - environment
+      - Key: Name
+        Value:
+          Fn::Join:
+          - "-"
+          - - Ref: Environment
+            - public
+      - Key: Role
+        Value: vpc
+      - Key: Subnet
+        Value: public
+
+  InternetRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+
+  SubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetPublicA
+      RouteTableId:
+        Ref: RouteTable
+
+  SubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetPublicB
+      RouteTableId:
+        Ref: RouteTable
+
+  SubnetCRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetPublicC
+      RouteTableId:
+        Ref: RouteTable
+
+Outputs:
+  VpcID:
+    Description: The ID of the newly created VPC
+    Value:
+      Ref: VPC
+  SubnetPublicA:
+    Description: The ID of the newly created Public Subnet in zone A
+    Value:
+      Ref: SubnetPublicA
+  SubnetPublicB:
+    Description: The ID of the newly created Public Subnet in zone B
+    Value:
+      Ref: SubnetPublicB
+  SubnetPublicC:
+    Description: The ID of the newly created Public Subnet in zone C
+    Value:
+      Ref: SubnetPublicC
+  InternetGateway:
+    Description: The ID of the newly created Internet Gateway
+    Value:
+      Ref: InternetGateway

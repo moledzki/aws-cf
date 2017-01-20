@@ -1,0 +1,224 @@
+---
+Description: Postgresql RDS setup
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  CIDRBase:
+    Description: First two segments of the VPC CIDR
+    Type: String
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})"
+    ConstraintDescription: 'must be a just 2 segments of CIDR range: x.x'
+  AppInstanceType:
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+    ConstraintDescription: must be a valid RDS instance type.
+    Default: db.t2.small
+    Description: Postgresql instance type
+    Type: String
+  Environment:
+    Description: Environment name
+    Type: String
+  HostedZone:
+    Description: R53 Hosted Zone ID
+    Type: String
+  HostedDomain:
+    Description: R53 Hosted Zone ID
+    Type: String
+  PostgresqlVersion:
+    Description: Postgresql Version
+    Type: String
+  PostgresqlInstanceType:
+    AllowedValues:
+      - db.t2.micro
+      - db.t2.small
+      - db.t2.medium
+      - db.t2.large
+    ConstraintDescription: must be a valid RDS instance type.
+    Default: db.t2.small
+    Description: Postgresql instance type
+    Type: String
+  PostgresqlSnapshotIdentifier:
+    Default: ''
+    Description: Postgresql Snapshot Identifier - leave empty if you want to
+      create or update DBs.
+    Type: String
+  PostgresqlStorage:
+    Default: '5'
+    Description: Postgresql Storage Size
+    Type: Number
+  RootPassword:
+    Description: Postgresql Root Password
+    Type: String
+  SubnetPublicA:
+    Description: ID of the Private A Subnet
+    Type: String
+  SubnetPublicB:
+    Description: ID of the Private B Subnet
+    Type: String
+  SubnetPublicC:
+    Description: ID of the Private C Subnet
+    Type: String
+  VpcID:
+    Description: ID of the VPC
+    Type: String
+
+Resources:
+  PostgresqlSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Postgresql Security Group
+      VpcId:
+        Ref: VpcID
+      SecurityGroupIngress:
+        - # Open to entire world
+          CidrIp: 0.0.0.0/0
+          FromPort: 5432
+          IpProtocol: tcp
+          ToPort: 5432
+      SecurityGroupEgress:
+        - CidrIp:
+            Fn::Join:
+              - .
+              -
+                - Ref: CIDRBase
+                - 0.0/16
+          FromPort: 5432
+          IpProtocol: tcp
+          ToPort: 5432
+
+  AppSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable access to application
+      VpcId:
+        Ref: VpcID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          # Open to entire world
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          # Open to entire world
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Join:
+              - "-"
+              -
+                - Ref: Environment
+                - app
+
+  PostgresqlSubnet:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Postgresql Subnet
+      SubnetIds:
+        - Ref: SubnetPublicA
+        - Ref: SubnetPublicB
+        - Ref: SubnetPublicC
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Join:
+              - -
+              -
+                - Ref: Environment
+                - postgresql
+                - app
+
+  PostgresqlDb:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage:
+        Ref: PostgresqlStorage
+      DBInstanceClass:
+        Ref: PostgresqlInstanceType
+      DBSubnetGroupName:
+        Ref: PostgresqlSubnet
+      DBInstanceIdentifier:
+        Fn::Join:
+          - -
+          -
+            - Ref: Environment
+            - postgresql
+            - app
+      DBSnapshotIdentifier:
+        Ref: PostgresqlSnapshotIdentifier
+      Engine: postgres
+      EngineVersion:
+        Ref: PostgresqlVersion
+      MasterUsername: root
+      MasterUserPassword:
+        Ref: RootPassword
+      MultiAZ: false
+      PubliclyAccessible: true
+      StorageType: standard
+      Tags:
+        - Key: Name
+          Value:
+            Fn::Join:
+              - -
+              -
+                - Ref: Environment
+                - postgresql
+                - app
+      VPCSecurityGroups:
+        - Ref: PostgresqlSg
+
+  AppEc2:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      AssociatePublicIpAddress: true
+      InstanceMonitoring: false
+      InstanceType:
+        Ref: AppInstanceType
+      ImageId:
+        Ref: AppImageId
+      KeyName:
+        Ref: KeyName
+      SecurityGroups:
+        - Ref: AppSg
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ''
+            -
+              - "#!/bin/bash\n"
+              - /my/script.sh '
+              - Fn::GetAtt:
+                - PostgresqlDb
+                - Endpoint.Address
+
+Outputs:
+  AppDNS:
+    Value:
+      Fn::GetAtt:
+        - AppEc2
+        - PublicDnsName
+  AppIP:
+    Value:
+      Fn::GetAtt:
+        - AppEc2
+        - PublicIp
+  DbConnection:
+    Description: Postgresql connection URI
+    Value:
+      Fn::Join:
+        - ''
+        -
+          - postgresql://
+          - Fn::GetAtt:
+            - PostgresqlDb
+            - Endpoint.Address
+          - ":"
+          - Fn::GetAtt:
+            - PostgresqlDb
+            - Endpoint.Port
+          - "/"
