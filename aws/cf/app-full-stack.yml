@@ -1,0 +1,33 @@
+---
+
+Description: Application Stack Setup
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+
+Resources:
+  Foundation:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        KeyName:
+          Ref: KeyName
+        # ...
+      TemplateURL: https://s3.amazonaws.com/cloudformation.maciek.oledzki.net/app/foundation.yml
+      TimeoutInMinutes: 5
+
+  Storage:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        # params goes here
+      TemplateURL: https://s3.amazonaws.com/cloudformation.maciek.oledzki.net/app/datastorage.yml
+      TimeoutInMinutes: 30
+
+  App:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      Parameters:
+        # params ...
+      TemplateURL: https://s3.amazonaws.com/cloudformation.maciek.oledzki.net/app/app.yml
+      TimeoutInMinutes: 20

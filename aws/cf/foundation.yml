@@ -391,18 +391,30 @@ Outputs:
     Description: The ID of the newly created VPC
     Value:
       Ref: VPC
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-VpcID"
   SubnetPublicA:
     Description: The ID of the newly created Public Subnet in zone A
     Value:
       Ref: SubnetPublicA
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-SubnetPublicA"
   SubnetPublicB:
     Description: The ID of the newly created Public Subnet in zone B
     Value:
       Ref: SubnetPublicB
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-SubnetPublicB"
   SubnetPublicC:
     Description: The ID of the newly created Public Subnet in zone C
     Value:
       Ref: SubnetPublicC
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-SubnetPublicC"
   InternetGateway:
     Description: The ID of the newly created Internet Gateway
     Value:
