@@ -15,6 +15,8 @@ Parameters:
     Default: t2.small
     Description: App instance type
     Type: String
+  BootstrapScript:
+    Type: String
   DatastoreAddress:
     Type: String
   Environment:
@@ -76,7 +78,8 @@ Resources:
             - ''
             -
               - "#!/bin/bash\n"
-              - /my/script.sh '
+              - Ref: BootstrapScript
+              - " "
               - Ref: DatastoreAddress
 
 Outputs:

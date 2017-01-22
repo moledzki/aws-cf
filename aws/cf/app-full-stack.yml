@@ -7,6 +7,8 @@ Parameters:
   Environment:
     Description: Environment name
     Type: String
+  BootstrapScript:
+    Type: String
   KeyName:
     Type: String
   AppImageID:
@@ -76,6 +78,8 @@ Resources:
       Parameters:
         AppImageID:
           Ref: AppImageID
+        BootstrapScript:
+          Ref: BootstrapScript
         DatastoreAddress:
           Fn::GetAtt:
             - Datastorage
@@ -84,6 +88,10 @@ Resources:
           Ref: Environment
         KeyName:
           Ref: KeyName
+        PublicSubnet:
+          Fn::GetAtt:
+            - Foundation
+            - Outputs.SubnetPublicA
         VpcID:
           Fn::GetAtt:
             - Foundation
