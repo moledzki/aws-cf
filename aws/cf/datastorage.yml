@@ -9,28 +9,12 @@ Parameters:
     Default: 10.1
     Description: First two segments of the VPC CIDR
     Type: String
-  AppImageID:
-    Type: String
-  AppInstanceType:
-    AllowedValues:
-      - t2.micro
-      - t2.small
-      - t2.medium
-      - t2.large
-    ConstraintDescription: must be a valid RDS instance type.
-    Default: t2.small
-    Description: App instance type
-    Type: String
   Environment:
     Description: Environment name
     Type: String
-  KeyName:
-    Type: String
-  FoundationStack:
-    Description: Name of The Foundation Stacks
-    Type: String
   RdsVersion:
     Description: Rds Version
+    # Mysql version
     Default: "5.7"
     Type: String
   RdsInstanceType:
@@ -56,6 +40,14 @@ Parameters:
     Description: Rds Root Password
     Default: ygZbqf1Edwtmcc36wodlFuQ5
     Type: String
+  SubnetPublicA:
+    Type: String
+  SubnetPublicB:
+    Type: String
+  SubnetPublicC:
+    Type: String
+  VpcID:
+    Type: String
 
 Resources:
   RdsSg:
@@ -63,8 +55,7 @@ Resources:
     Properties:
       GroupDescription: Rds Security Group
       VpcId:
-        Fn::ImportValue:
-          Fn::Sub: "${FoundationStack}-VpcID"
+        Ref: VpcID
       SecurityGroupIngress:
         - # Open to entire world
           CidrIp: 0.0.0.0/0
@@ -82,44 +73,14 @@ Resources:
           IpProtocol: tcp
           ToPort: 5432
 
-  AppSg:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Enable access to application
-      VpcId:
-        Fn::ImportValue:
-          Fn::Sub: "${FoundationStack}-VpcID"
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          # Open to entire world
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          # Open to entire world
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value:
-            Fn::Join:
-              - "-"
-              -
-                - Ref: Environment
-                - app
-
   RdsSubnet:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Rds Subnet
       SubnetIds:
-        - Fn::ImportValue:
-            Fn::Sub: "${FoundationStack}-SubnetPublicA"
-        - Fn::ImportValue:
-            Fn::Sub: "${FoundationStack}-SubnetPublicB"
-        - Fn::ImportValue:
-            Fn::Sub: "${FoundationStack}-SubnetPublicC"
+        - Ref: SubnetPublicA
+        - Ref: SubnetPublicB
+        - Ref: SubnetPublicC
       Tags:
         - Key: Name
           Value:
@@ -169,41 +130,17 @@ Resources:
       VPCSecurityGroups:
         - Ref: RdsSg
 
-  AppEc2:
-    Type: "AWS::EC2::Instance"
-    Properties:
-      AssociatePublicIpAddress: true
-      InstanceMonitoring: false
-      InstanceType:
-        Ref: AppInstanceType
-      ImageId:
-        Ref: AppImageID
-      KeyName:
-        Ref: KeyName
-      SecurityGroups:
-        - Ref: AppSg
-      UserData:
-        Fn::Base64:
-          Fn::Join:
-            - ''
-            -
-              - "#!/bin/bash\n"
-              - /my/script.sh '
-              - Fn::GetAtt:
-                - RdsDb
-                - Endpoint.Address
-
 Outputs:
-  AppDNS:
+  Address:
     Value:
       Fn::GetAtt:
-        - AppEc2
-        - PublicDnsName
-  AppIP:
+        - RdsDb
+        - Endpoint.Address
+  Port:
     Value:
       Fn::GetAtt:
-        - AppEc2
-        - PublicIp
+        - RdsDb
+        - Endpoint.Port
   DbConnection:
     Description: Rds connection URI
     Value:

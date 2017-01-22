@@ -28,15 +28,6 @@ Mappings:
     PublicC:
       CIDR: 3.0/24
       name: Public C
-    PrivateA:
-      CIDR: 8.0/24
-      name: Private A
-    PrivateB:
-      CIDR: 64.0/24
-      name: Private B
-    PrivateC:
-      CIDR: 128.0/24
-      name: Private C
   Zones:
     eu-west-1:
       A: eu-west-1a
@@ -54,7 +45,8 @@ Resources:
       CidrBlock:
         Fn::Join:
           - "."
-          - - Ref: CIDRBase
+          -
+            - Ref: CIDRBase
             - 0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
@@ -78,7 +70,8 @@ Resources:
       CidrBlock:
         Fn::Join:
           - "."
-          - - Ref: CIDRBase
+          -
+            - Ref: CIDRBase
             - Fn::FindInMap:
               - SubnetConfig
               - PublicA
@@ -88,7 +81,8 @@ Resources:
           Value:
             Fn::Join:
             - " "
-            - - Public subnet (A) for
+            -
+              - Public subnet (A) for
               - Ref: Environment
               - environment
               - in zone
@@ -104,46 +98,6 @@ Resources:
               - public-a
         - Key: Role
           Value: vpc
-
-  SubnetPrivateA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::FindInMap:
-        - Zones
-        - Ref: Region
-        - A
-      CidrBlock:
-        Fn::Join:
-        - "."
-        - - Ref: CIDRBase
-          - Fn::FindInMap:
-            - SubnetConfig
-            - PrivateA
-            - CIDR
-      Tags:
-      - Key: Description
-        Value:
-          Fn::Join:
-          - " "
-          - - Private subnet (A) for
-            - Ref: Environment
-            - environment
-            - in zone
-            - Fn::FindInMap:
-              - Zones
-              - Ref: Region
-              - A
-      - Key: Name
-        Value:
-          Fn::Join:
-          - "-"
-          - - Ref: Environment
-            - private-a
-      - Key: Role
-        Value: vpc
 
   SubnetPublicB:
     Type: AWS::EC2::Subnet
@@ -185,46 +139,6 @@ Resources:
       - Key: Role
         Value: vpc
 
-  SubnetPrivateB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::FindInMap:
-        - Zones
-        - Ref: Region
-        - B
-      CidrBlock:
-        Fn::Join:
-        - "."
-        - - Ref: CIDRBase
-          - Fn::FindInMap:
-            - SubnetConfig
-            - PrivateB
-            - CIDR
-      Tags:
-      - Key: Description
-        Value:
-          Fn::Join:
-          - " "
-          - - Private subnet (B) for
-            - Ref: Environment
-            - environment
-            - in zone
-            - Fn::FindInMap:
-              - Zones
-              - Ref: Region
-              - B
-      - Key: Name
-        Value:
-          Fn::Join:
-          - "-"
-          - - Ref: Environment
-            - private-b
-      - Key: Role
-        Value: vpc
-
   SubnetPublicC:
     Type: AWS::EC2::Subnet
     Properties:
@@ -262,46 +176,6 @@ Resources:
           - "-"
           - - Ref: Environment
             - public-c
-      - Key: Role
-        Value: vpc
-
-  SubnetPrivateC:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      AvailabilityZone:
-        Fn::FindInMap:
-        - Zones
-        - Ref: Region
-        - C
-      CidrBlock:
-        Fn::Join:
-        - "."
-        - - Ref: CIDRBase
-          - Fn::FindInMap:
-            - SubnetConfig
-            - PrivateC
-            - CIDR
-      Tags:
-      - Key: Description
-        Value:
-          Fn::Join:
-          - " "
-          - - Private subnet (C) for
-            - Ref: Environment
-            - environment
-            - in zone
-            - Fn::FindInMap:
-              - Zones
-              - Ref: Region
-              - C
-      - Key: Name
-        Value:
-          Fn::Join:
-          - "-"
-          - - Ref: Environment
-            - private-c
       - Key: Role
         Value: vpc
 
@@ -391,30 +265,18 @@ Outputs:
     Description: The ID of the newly created VPC
     Value:
       Ref: VPC
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-VpcID"
   SubnetPublicA:
     Description: The ID of the newly created Public Subnet in zone A
     Value:
       Ref: SubnetPublicA
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPublicA"
   SubnetPublicB:
     Description: The ID of the newly created Public Subnet in zone B
     Value:
       Ref: SubnetPublicB
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPublicB"
   SubnetPublicC:
     Description: The ID of the newly created Public Subnet in zone C
     Value:
       Ref: SubnetPublicC
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetPublicC"
   InternetGateway:
     Description: The ID of the newly created Internet Gateway
     Value:
