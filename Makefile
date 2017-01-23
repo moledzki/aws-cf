@@ -18,6 +18,7 @@ deps:
 start: upload
 	aws cloudformation create-stack --stack-name "$(ENV)-app-full-stack" \
 		--template-body "file://./aws/cf/app-full-stack.yml" \
+		--disable-rollback \
 		--parameters \
 			"ParameterKey=AppImageID,ParameterValue=$(AMI_ID)" \
 			"ParameterKey=BootstrapScript,ParameterValue=$(EC2_BOOTSTRAP_SCRIPT)" \
@@ -38,7 +39,7 @@ status:
 ## Upload CF Templates to S3
 upload:
 	aws s3 cp aws/cf/foundation.yml s3://cloudformation.$(S3_NAME_SUFFIX)/app/
-	aws s3 cp aws/cf/datastorage.yml s3://cloudformation.$(S3_NAME_SUFFIX)/app/
+	aws s3 cp aws/cf/datastore.yml s3://cloudformation.$(S3_NAME_SUFFIX)/app/
 	aws s3 cp aws/cf/app.yml s3://cloudformation.$(S3_NAME_SUFFIX)/app/
 
 .make:

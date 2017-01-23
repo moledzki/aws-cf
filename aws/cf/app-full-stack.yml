@@ -36,7 +36,7 @@ Resources:
             - foundation.yml
       TimeoutInMinutes: 5
 
-  Datastorage:
+  Datastore:
     DependsOn:
       - Foundation
     Type: "AWS::CloudFormation::Stack"
@@ -66,14 +66,14 @@ Resources:
           -
             - https://s3.amazonaws.com/
             - Ref: TemplatesBucket
-            - datastorage.yml
+            - datastore.yml
       TimeoutInMinutes: 30
 
   App:
     Type: "AWS::CloudFormation::Stack"
     DependsOn:
       - Foundation
-      - Datastorage
+      - Datastore
     Properties:
       Parameters:
         AppImageID:
@@ -82,7 +82,7 @@ Resources:
           Ref: BootstrapScript
         DatastoreAddress:
           Fn::GetAtt:
-            - Datastorage
+            - Datastore
             - Outputs.Address
         Environment:
           Ref: Environment
@@ -104,3 +104,17 @@ Resources:
             - Ref: TemplatesBucket
             - app.yml
       TimeoutInMinutes: 20
+
+Outputs:
+  FoundationStack:
+    Description: Foundation Stack ARN
+    Value:
+      Ref: Foundation
+  DatastoreStack:
+    Description: Datastore Stack ARN
+    Value:
+      Ref: Datastore
+  AppStack:
+    Description: Application Stack ARN
+    Value:
+      Ref: App

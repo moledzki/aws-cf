@@ -70,8 +70,8 @@ Resources:
           DeviceIndex: 0
           SubnetId:
             Ref: PublicSubnet
-      SecurityGroups:
-        - Ref: AppSg
+          GroupSet:
+            - Ref: AppSg
       UserData:
         Fn::Base64:
           Fn::Join:
