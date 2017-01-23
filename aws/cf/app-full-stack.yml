@@ -13,6 +13,8 @@ Parameters:
     Type: String
   AppImageID:
     Type: String
+  RdsRootPassword:
+    Type: String
   Region:
     Type: String
   TemplatesBucket:
@@ -44,6 +46,8 @@ Resources:
       Parameters:
         Environment:
           Ref: Environment
+        RdsRootPassword:
+          Ref: RdsRootPassword
         SubnetPublicA:
           Fn::GetAtt:
             - Foundation
