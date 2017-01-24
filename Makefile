@@ -1,12 +1,12 @@
 include .make
 
 AMI_ID ?= ""
-KEY_NAME ?= ""
+EC2_BOOTSTRAP_SCRIPT ?= /some/script.sh
 ENV ?= tst
+KEY_NAME ?= ""
 PROFILE ?= default
 REGION ?= eu-central-1
 S3_NAME_SUFFIX ?= my.test.example
-EC2_BOOTSTRAP_SCRIPT ?= /some/script.sh
 
 export AWS_PROFILE=$(PROFILE)
 export AWS_REGION=$(REGION)
@@ -32,6 +32,19 @@ start: upload
 ## Deletes "App" Stack
 stop:
 	aws cloudformation delete-stack --stack-name "$(ENV)-app-full-stack"
+
+## Update existing stack
+update: upload
+	aws cloudformation update-stack --stack-name "$(ENV)-app-full-stack" \
+		--template-body "file://./aws/cf/app-full-stack.yml" \
+		--parameters \
+			"ParameterKey=AppImageID,ParameterValue=$(AMI_ID)" \
+			"ParameterKey=BootstrapScript,ParameterValue=$(EC2_BOOTSTRAP_SCRIPT)" \
+			"ParameterKey=Environment,ParameterValue=$(ENV)" \
+			"ParameterKey=KeyName,ParameterValue=$(KEY_NAME)" \
+			"ParameterKey=RdsRootPassword,ParameterValue=$(RDS_ROOT_PASSWORD)" \
+			"ParameterKey=Region,ParameterValue=$(REGION)" \
+			"ParameterKey=TemplatesBucket,ParameterValue=cloudformation.$(S3_NAME_SUFFIX)/app/"
 
 ## Print stack's status
 # Usage: make status
