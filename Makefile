@@ -7,6 +7,7 @@ PROFILE ?= default
 REGION ?= eu-central-1
 S3_NAME_SUFFIX ?= my.test.example
 EC2_BOOTSTRAP_SCRIPT ?= /some/script.sh
+RDS_ROOT_PASSWORD ?= defaultstupidpassword
 
 export AWS_PROFILE=$(PROFILE)
 export AWS_REGION=$(REGION)
@@ -26,6 +27,7 @@ start: upload
 			"ParameterKey=BootstrapScript,ParameterValue=$(EC2_BOOTSTRAP_SCRIPT)" \
 			"ParameterKey=Environment,ParameterValue=$(ENV)" \
 			"ParameterKey=KeyName,ParameterValue=$(KEY_NAME)" \
+			"ParameterKey=RdsRootPassword,ParameterValue=$(RDS_ROOT_PASSWORD)" \
 			"ParameterKey=Region,ParameterValue=$(REGION)" \
 			"ParameterKey=TemplatesBucket,ParameterValue=cloudformation.$(S3_NAME_SUFFIX)/app/"
 

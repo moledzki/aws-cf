@@ -36,7 +36,7 @@ Parameters:
     Default: '5'
     Description: Rds Storage Size
     Type: Number
-  RootPassword:
+  RdsRootPassword:
     Description: Rds Root Password
     Default: ygZbqf1Edwtmcc36wodlFuQ5
     Type: String
@@ -114,7 +114,7 @@ Resources:
         Ref: RdsVersion
       MasterUsername: root
       MasterUserPassword:
-        Ref: RootPassword
+        Ref: RdsRootPassword
       MultiAZ: false
       PubliclyAccessible: true
       StorageType: standard
