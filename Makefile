@@ -38,7 +38,7 @@ stop:
 ## Print stack's status
 # Usage: make status
 status:
-	aws --profile odp cloudformation describe-stacks \
+	aws cloudformation describe-stacks \
 		--stack-name "$(ENV)-app-full-stack" \
 		--query "Stacks[][StackStatus] | []"
 
