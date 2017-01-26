@@ -37,6 +37,11 @@ Mappings:
       A: eu-central-1a
       B: eu-central-1b
       C: eu-central-1c
+    us-east-1:
+      A: us-east-1a
+      B: us-east-1c
+      C: us-east-1e
+      
 
 Resources:
   VPC:
